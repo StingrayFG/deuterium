@@ -21,6 +21,8 @@ router.get('/', function(req, res, next) {
 
 router.post('/', upload.single('file'), function(req, res, next) {
   console.log('post')
+  res.json({ link: '' });
+  res.send;
 });
 
 module.exports = router;
