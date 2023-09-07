@@ -59,7 +59,7 @@ router.post('/upload', upload.single('file'), async function(req, res, next) {
     },
   })
 
-  res.json({ link: uuid });
+  res.json({ uuid: uuid });
   res.send;
 });
 
