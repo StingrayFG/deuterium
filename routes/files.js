@@ -1,4 +1,5 @@
 var path = require('path');
+const fs = require('fs');
 var crypto = require('crypto');
 
 var express = require('express');
@@ -28,7 +29,8 @@ router.get('/file/:uuid', async function(req, res, next) {
 
   res.setHeader('Content-Type', 'application/json');
   if (file) {
-    res.send(JSON.stringify({ exists: true, fileName: path.parse(file.fileName).name, fileSize: file.size}));
+    res.send(JSON.stringify({ exists: true, fileName: path.parse(file.fileName).name, 
+    fileSize: (fs.statSync('uploads/' + file.fileName).size / 1000000).toFixed(1)}));
   } else {
     res.send(JSON.stringify({ exists: false }));
   }
