@@ -28,7 +28,7 @@ router.get('/file/:uuid', async function(req, res, next) {
 
   res.setHeader('Content-Type', 'application/json');
   if (file) {
-    res.send(JSON.stringify({ exists: true, fileName: path.parse(file.fileName).name}));
+    res.send(JSON.stringify({ exists: true, fileName: path.parse(file.fileName).name, fileSize: file.size}));
   } else {
     res.send(JSON.stringify({ exists: false }));
   }
