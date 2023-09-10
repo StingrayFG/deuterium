@@ -30,7 +30,7 @@ router.get('/file/:uuid', async function(req, res, next) {
   res.setHeader('Content-Type', 'application/json');
   if (file) {
     res.send(JSON.stringify({ exists: true, fileName: path.parse(file.fileName).name, 
-    fileSize: (fs.statSync('uploads/' + file.fileName).size / 1000000).toFixed(1)}));
+    fileSize: (fs.statSync('uploads/' + file.fileName).size / (1024 * 1024)).toFixed(1)}));
   } else {
     res.send(JSON.stringify({ exists: false }));
   }
