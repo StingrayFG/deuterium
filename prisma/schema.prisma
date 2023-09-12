@@ -8,6 +8,6 @@ datasource db {
 }
 
 model file{
-    uuid        String  @id
-    fileName    String
+  uuid        String  @id
+  fileName    String
 }
