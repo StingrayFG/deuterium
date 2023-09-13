@@ -52,7 +52,7 @@ router.get('/file/:uuid/download', async function(req, res, next) {
 });
 
 router.post('/upload', upload.single('file'), async function(req, res, next) {
-  var uuid = Buffer.from(crypto.randomUUID(), 'hex').toString('base64');
+  var uuid = Buffer.from(crypto.randomUUID(), 'hex').toString('base64url');
 
   const post = await prisma.file.create({
     data: {
