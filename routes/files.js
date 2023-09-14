@@ -1,5 +1,5 @@
 var path = require('path');
-const fs = require('fs');
+var fs = require('fs');
 var crypto = require('crypto');
 
 var express = require('express');
