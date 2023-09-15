@@ -12,7 +12,10 @@ var app = express();
 
 // view engine setup
 
-app.use(cors())
+app.use(cors({
+  origin: 'http://172.17.0.1:3000',
+  origin: 'http://172.17.0.1:80',
+}))
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
