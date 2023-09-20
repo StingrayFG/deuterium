@@ -5,6 +5,8 @@ var crypto = require('crypto');
 var express = require('express');
 var router = express.Router();
 
+var CryptoJS = require('crypto-js')
+
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 
@@ -57,7 +59,8 @@ router.post('/upload', upload.single('file'), async function(req, res, next) {
   const post = await prisma.file.create({
     data: {
       uuid,
-      fileName: res.req.file.filename
+      fileName: res.req.file.filename,
+      hashSum: CryptoJS.MD5(res.req.file).toString(),
     },
   })
 

@@ -10,4 +10,5 @@ datasource db {
 model file{
   uuid        String  @id
   fileName    String
+  hashSum     String
 }
