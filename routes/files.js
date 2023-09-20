@@ -61,6 +61,7 @@ router.post('/upload', upload.single('file'), async function(req, res, next) {
       uuid,
       fileName: res.req.file.filename,
       hashSum: CryptoJS.MD5(res.req.file).toString(),
+      uploadIP: req.headers['X-Forwarded-For'] || null,
     },
   })
 
