@@ -55,16 +55,18 @@ router.post('/upload', upload.single('file'), async function(req, res, next) {
   var uuid = Buffer.from(crypto.randomUUID(), 'hex').toString('base64url');
 
   var hash = crypto.createHash('md5');
-  var file = fs.readFileSync('uploads/' + res.req.file.filename)
+  var file = fs.readFileSync('uploads/' + req.file.filename)
   hash.update(file);
   var hashDigest = hash.digest('hex');
+  
+  console.log(req.headers);
 
   const post = await prisma.file.create({
     data: {
       uuid,
-      fileName: res.req.file.filename,
+      fileName: req.file.filename,
       hashSum: hashDigest,
-      uploadIP: req.headers['X-Forwarded-For'] || null
+      uploadIP: req.headers['x-forwarded-for']
     },
   })
 
