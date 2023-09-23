@@ -5,8 +5,6 @@ var crypto = require('crypto');
 var express = require('express');
 var router = express.Router();
 
-var CryptoJS = require('crypto-js')
-
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 
@@ -16,7 +14,7 @@ var storage = multer.diskStorage({
     cb(null, 'uploads/')
   },
   filename: function (req, file, cb) {
-    cb(null, file.originalname + '.' + Date.now()) //Appending extension
+    cb(null, file.originalname + '.' + Date.now()) 
   }
 })
 var upload = multer({ storage: storage });
@@ -56,12 +54,17 @@ router.get('/file/:uuid/download', async function(req, res, next) {
 router.post('/upload', upload.single('file'), async function(req, res, next) {
   var uuid = Buffer.from(crypto.randomUUID(), 'hex').toString('base64url');
 
+  var hash = crypto.createHash('md5');
+  var file = fs.readFileSync('uploads/' + res.req.file.filename)
+  hash.update(file);
+  var hashDigest = hash.digest('hex');
+
   const post = await prisma.file.create({
     data: {
       uuid,
       fileName: res.req.file.filename,
-      hashSum: CryptoJS.MD5(res.req.file).toString(),
-      uploadIP: req.headers['X-Forwarded-For'] || null,
+      hashSum: hashDigest,
+      uploadIP: req.headers['X-Forwarded-For'] || null
     },
   })
 
