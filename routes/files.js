@@ -29,8 +29,8 @@ router.get('/file/:uuid', async function(req, res, next) {
 
   res.setHeader('Content-Type', 'application/json');
   if (file) {
-    res.send(JSON.stringify({ exists: true, fileName: path.parse(file.fileName).name, 
-    fileSize: (fs.statSync('uploads/' + file.fileName).size / (1024 * 1024)).toFixed(1)}));
+    res.send(JSON.stringify({ exists: true, name: path.parse(file.fileName).name, 
+    size: (fs.statSync('uploads/' + file.fileName).size / (1024 * 1024)).toFixed(1), hashSum: file.hashSum}));
   } else {
     res.send(JSON.stringify({ exists: false }));
   }
@@ -70,7 +70,7 @@ router.post('/upload', upload.single('file'), async function(req, res, next) {
     },
   })
 
-  res.json({ uuid: uuid });
+  res.json({ fileUuid: uuid });
   res.send;
 });
 
