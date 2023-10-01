@@ -29,10 +29,15 @@ router.get('/file/:uuid', async function(req, res, next) {
 
   res.setHeader('Content-Type', 'application/json');
   if (file) {
-    res.send(JSON.stringify({ exists: true, name: path.parse(file.fileName).name, 
-    size: (fs.statSync('uploads/' + file.fileName).size / (1024 * 1024)).toFixed(1), hashSum: file.hashSum}));
+    res.send(JSON.stringify({  
+      fileData: 
+        {exists: true,
+        name: path.parse(file.fileName).name, 
+        size: (fs.statSync('uploads/' + file.fileName).size / (1024 * 1024)).toFixed(1), 
+        hashSum: file.hashSum}
+    }));
   } else {
-    res.send(JSON.stringify({ exists: false }));
+    res.send(JSON.stringify({fileData: {exists: false}}));
   }
 });
 
@@ -52,7 +57,7 @@ router.get('/file/:uuid/download', async function(req, res, next) {
 });
 
 router.post('/upload', upload.single('file'), async function(req, res, next) {
-  var uuid = Buffer.from(crypto.randomUUID(), 'hex').toString('base64url');
+  var fileUuid = Buffer.from(crypto.randomUUID(), 'hex').toString('base64url');
 
   var hash = crypto.createHash('md5');
   var file = fs.readFileSync('uploads/' + req.file.filename)
@@ -61,16 +66,16 @@ router.post('/upload', upload.single('file'), async function(req, res, next) {
   
   console.log(req.headers);
 
-  const post = await prisma.file.create({
+  await prisma.file.create({
     data: {
-      uuid,
+      uuid: fileUuid,
       fileName: req.file.filename,
       hashSum: hashDigest,
       uploadIP: req.headers['x-forwarded-for']
     },
   })
 
-  res.json({ fileUuid: uuid });
+  res.json({ fileUuid: fileUuid });
   res.send;
 });
 
