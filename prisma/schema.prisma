@@ -7,10 +7,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model file{
+model file {
   uuid        String    @id
   fileName    String
   hashSum     String?
   uploadIP    String?
   uploadDate  DateTime? @db.Timestamptz(3)  @default(dbgenerated("NOW()")) 
+}
+
+model panelToken {
+  value          String    @id
+  expirationDate DateTime? @db.Timestamptz(3)  @default(dbgenerated("NOW() + interval '300 seconds'")) 
+}
+
+model panelUser {
+  login       String    @id
+  password    String 
 }
