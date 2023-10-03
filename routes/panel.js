@@ -9,6 +9,25 @@ var router = express.Router();
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 
+const authenticateJWT = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (authHeader) {
+      const token = authHeader.split(' ')[1];
+
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+          if (err) {
+              return res.sendStatus(403);
+          }
+
+          req.user = user;
+          next();
+      });
+  } else {
+      res.sendStatus(401);
+  }
+};
+
 router.post('/panel/login', async function(req, res, next) {
   console.log(req.body);
   //console.log(req.login);
@@ -31,6 +50,10 @@ router.post('/panel/login', async function(req, res, next) {
   } else {
     res.send(JSON.stringify({ exists: false }));
   }
+});
+
+router.get('/panel/testToken', authenticateJWT, (req, res) => {
+  res.send(JSON.stringify({ valid: true}));
 });
 
 module.exports = router;
