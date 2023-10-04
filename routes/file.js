@@ -20,42 +20,6 @@ var storage = multer.diskStorage({
 var upload = multer({ storage: storage });
 
 
-router.get('/file/:uuid', async function(req, res, next) {
-  const file = await prisma.file.findUnique({
-    where: {
-      uuid: req.params.uuid
-    }
-  })
-
-  res.setHeader('Content-Type', 'application/json');
-  if (file) {
-    res.send(JSON.stringify({  
-      fileData: 
-        {exists: true,
-        name: path.parse(file.fileName).name, 
-        size: (fs.statSync('uploads/' + file.fileName).size / (1024 * 1024)).toFixed(1), 
-        hashSum: file.hashSum}
-    }));
-  } else {
-    res.send(JSON.stringify({fileData: {exists: false}}));
-  }
-});
-
-router.get('/file/:uuid/download', async function(req, res, next) {
-  const file = await prisma.file.findUnique({
-    where: {
-      uuid: req.params.uuid
-    }
-  })
-
-  if (file) {
-    res.set('Content-Disposition', `attachment; filename="${path.parse(file.fileName).name}"`);
-    res.sendFile(file.fileName, { root: 'uploads/'});
-  } else {
-    res.status(404).send('Not Found');
-  }
-});
-
 router.post('/upload', upload.single('file'), async function(req, res, next) {
   var fileUuid = Buffer.from(crypto.randomUUID(), 'hex').toString('base64url');
 
@@ -77,6 +41,42 @@ router.post('/upload', upload.single('file'), async function(req, res, next) {
 
   res.json({ fileUuid: fileUuid });
   res.send;
+});
+
+router.get('/file/:uuid', async function(req, res, next) {
+  const file = await prisma.file.findUnique({
+    where: {
+      uuid: req.params.uuid
+    }
+  })
+
+  res.setHeader('Content-Type', 'application/json');
+  if (file) {
+    res.send({  
+      fileData: 
+        {exists: true,
+        name: path.parse(file.fileName).name, 
+        size: (fs.statSync('uploads/' + file.fileName).size / (1024 * 1024)).toFixed(1), 
+        hashSum: file.hashSum}
+    });
+  } else {
+    res.send({fileData: {exists: false}});
+  }
+});
+
+router.get('/file/:uuid/download', async function(req, res, next) {
+  const file = await prisma.file.findUnique({
+    where: {
+      uuid: req.params.uuid
+    }
+  })
+
+  if (file) {
+    res.set('Content-Disposition', `attachment; filename="${path.parse(file.fileName).name}"`);
+    res.sendFile(file.fileName, { root: 'uploads/'});
+  } else {
+    res.status(404).send('Not Found');
+  }
 });
 
 module.exports = router;
