@@ -2,6 +2,8 @@ var path = require('path');
 var fs = require('fs');
 var crypto = require('crypto');
 var jwt = require('jsonwebtoken');
+const util = require("util");
+const getFolderSize = util.promisify(require("get-folder-size"));
 
 var express = require('express');
 var router = express.Router();
@@ -28,9 +30,10 @@ const authenticateJWT = (req, res, next) => {
   }
 };
 
+
 router.post('/panel/login', async function(req, res, next) {
   console.log(req.body);
-  //console.log(req.login);
+
   const user = await prisma.panelUser.findUnique({
     where: {
       login: req.body.userData.login,
@@ -46,14 +49,25 @@ router.post('/panel/login', async function(req, res, next) {
         accessToken
       },
     })*/
-    res.send(JSON.stringify({ exists: true, accessToken}));
+    res.send({exists: true, accessToken});
   } else {
-    res.send(JSON.stringify({ exists: false }));
+    res.send({exists: false });
   }
 });
 
 router.get('/panel/testToken', authenticateJWT, (req, res) => {
-  res.send(JSON.stringify({ valid: true}));
+  res.send({valid: true});
+});
+
+router.get('/panel/status', authenticateJWT, async function(req, res, next) {
+  var filesSize = await getFolderSize('uploads');
+  console.log(filesSize);
+
+  var filesCount = fs.readdirSync('uploads').length;
+  console.log(filesCount);
+
+  res.send({status: {version: process.env.npm_package_version, 
+    uptime: process.uptime(), filesSize, filesCount}});
 });
 
 module.exports = router;
