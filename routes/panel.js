@@ -60,14 +60,11 @@ router.get('/panel/testToken', authenticateJWT, (req, res) => {
 });
 
 router.get('/panel/status', authenticateJWT, async function(req, res, next) {
-  var filesSize = await getFolderSize('uploads');
-  console.log(filesSize);
-
-  var filesCount = fs.readdirSync('uploads').length;
-  console.log(filesCount);
+  var filesSize = await getFolderSize('uploads/') / (1024 * 1024);
+  var filesCount = fs.readdirSync('uploads/').length;
 
   res.send({status: {version: process.env.npm_package_version, 
-    uptime: process.uptime(), filesSize, filesCount}});
+    uptime: process.uptime().toFixed(0), filesSize: filesSize.toFixed(1), filesCount}});
 });
 
 module.exports = router;
