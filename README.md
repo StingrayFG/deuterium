@@ -28,9 +28,7 @@ Frontend repository can be found here: https://github.com/StingrayFG/deuterium-u
 # Screenshots
 
 ### Mobile 
-<img src="https://github.com/StingrayFG/deuterium/assets/54187585/7b435511-4850-4d22-9d45-45246ba27c9c" width="400" />
+<img src="https://github.com/StingrayFG/deuterium/assets/54187585/37b07569-34fb-43e7-8a50-56d1535863ca" width="400" />
 
 ### Desktop 
-<img src="https://github.com/StingrayFG/deuterium/assets/54187585/214bb94c-ca09-476f-8148-9cdaaf613c43" />
-
-
+<img src="https://github.com/StingrayFG/deuterium/assets/54187585/daea496d-e4be-4337-ad23-acda29d57eea" />
