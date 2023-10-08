@@ -9,7 +9,7 @@ datasource db {
 
 model file {
   uuid        String    @id
-  fileName    String
+  name        String
   hashSum     String?
   uploadIP    String?
   uploadDate  DateTime? @db.Timestamptz(3)  @default(dbgenerated("NOW()")) 

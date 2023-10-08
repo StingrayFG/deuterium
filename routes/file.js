@@ -33,7 +33,7 @@ router.post('/upload', upload.single('file'), async function(req, res, next) {
   await prisma.file.create({
     data: {
       uuid: fileUuid,
-      fileName: req.file.filename,
+      name: req.file.filename,
       hashSum: hashDigest,
       uploadIP: req.headers['x-forwarded-for']
     },
@@ -55,8 +55,8 @@ router.get('/file/:uuid', async function(req, res, next) {
     res.send({  
       fileData: 
         {exists: true,
-        name: path.parse(file.fileName).name, 
-        size: (fs.statSync('uploads/' + file.fileName).size / (1024 * 1024)).toFixed(1), 
+        name: path.parse(file.name).name, 
+        size: (fs.statSync('uploads/' + file.name).size / (1024 * 1024)).toFixed(1), 
         hashSum: file.hashSum}
     });
   } else {
@@ -72,8 +72,8 @@ router.get('/file/:uuid/download', async function(req, res, next) {
   })
 
   if (file) {
-    res.set('Content-Disposition', `attachment; filename="${path.parse(file.fileName).name}"`);
-    res.sendFile(file.fileName, { root: 'uploads/'});
+    res.set('Content-Disposition', `attachment; filename="${path.parse(file.name).name}"`);
+    res.sendFile(file.name, { root: 'uploads/'});
   } else {
     res.status(404).send('Not Found');
   }
