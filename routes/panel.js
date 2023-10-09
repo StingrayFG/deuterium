@@ -44,19 +44,10 @@ router.post('/panel/login', async function(req, res, next) {
   res.setHeader('Content-Type', 'application/json');
   if (user) {
     var accessToken = jwt.sign({ username: user.login }, process.env.ACCESS_TOKEN_SECRET);
-    /**await prisma.panelToken.create({
-      data: {
-        accessToken
-      },
-    })*/
     res.send({exists: true, accessToken});
   } else {
     res.send({exists: false });
   }
-});
-
-router.get('/panel/testToken', authenticateJWT, (req, res) => {
-  res.send({valid: true});
 });
 
 router.get('/panel/status', authenticateJWT, async function(req, res, next) {
@@ -66,5 +57,125 @@ router.get('/panel/status', authenticateJWT, async function(req, res, next) {
   res.send({status: {version: process.env.npm_package_version, 
     uptime: process.uptime().toFixed(0), filesSize: filesSize.toFixed(1), filesCount}});
 });
+
+
+router.get('/panel/files', authenticateJWT, async function(req, res, next) {
+  const files = await prisma.file.findMany();
+
+  files.forEach(file => {
+    file.name = path.parse(file.name).name;
+  });
+  if (files) {
+    res.send({files});
+  } else {
+    res.send({files: []});
+  }
+
+});
+
+router.post('/panel/files/search', authenticateJWT, async function(req, res, next) {
+  var safeDateFrom = new Date(0);
+  var safeDateTo = new Date();
+
+  if (req.body.searchParams.dateFrom.length > 0) {
+    console.log(req.body.searchParams.dateFrom);
+    safeDateFrom = new Date(req.body.searchParams.dateFrom).toISOString();
+  }
+  if (req.body.searchParams.dateTo.length > 0) {
+    console.log(req.body.searchParams.dateTo);
+    safeDateTo = new Date(req.body.searchParams.dateTo).toISOString();
+  }
+
+  var files = [];
+
+  if (req.body.searchParams.ip.length > 0) {
+    files = await prisma.file.findMany({
+      where: {
+        name: {
+          contains: req.body.searchParams.name,
+          mode: 'insensitive'
+        },
+        uploadIP: {
+          contains: req.body.searchParams.ip,
+          mode: 'insensitive'
+        },
+        uploadDate: {
+          gte: safeDateFrom,
+          lte: safeDateTo
+        }
+      },
+      take: +req.body.searchParams.maxResults
+    })
+    console.log(req.body);
+  } else {
+    files = await prisma.file.findMany({
+      where: {
+        name: {
+          contains: req.body.searchParams.name,
+          mode: 'insensitive'
+        },
+        uploadDate: {
+          gte: safeDateFrom,
+          lte: safeDateTo
+        }
+      },
+      take: +req.body.searchParams.maxResults
+    })
+    console.log(req.body);
+  }
+
+  files.forEach(file => {
+    file.name = path.parse(file.name).name;
+  });
+  if (files) {
+    res.send({files});
+  } else {
+    res.send({files: []});
+  }
+});
+
+router.post('/panel/files/hash', authenticateJWT, async function(req, res, next) {
+  const file = await prisma.file.findFirst({
+    where: {
+      hashSum: req.body.hashSum
+    }
+  })
+
+  res.setHeader('Content-Type', 'application/json');
+  if (file) {
+    res.send({files: [{  
+      uuid: file.uuid,
+      name: path.parse(file.name).name, 
+      hashSum: file.hashSum,
+      uploadIP: file.uploadIP,
+      uploadDate: file.uploadDate  
+    }]});
+  } else {
+    res.send({files: []});
+  }
+});
+
+router.post('/panel/files/:uuid/delete', authenticateJWT, async function(req, res, next) {
+  const file = await prisma.file.findUnique({
+    where: {
+      uuid: req.params.uuid
+    }
+  })
+  
+  if (file) {
+    await prisma.file.delete({
+      where: {
+        uuid: file.uuid
+      }
+    })
+    await fs.unlinkSync('uploads/' + file.name);
+  
+    res.sendStatus(200);
+  } else {
+    res.sendStatus(404);
+  }
+
+});
+
 
 module.exports = router;
