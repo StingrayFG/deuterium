@@ -238,6 +238,25 @@ router.post('/panel/files/blacklist/:hashsum/remove', authenticateJWT, async fun
   }
 });
 
+router.post('/panel/users/create', async function(req, res, next) {
+  var exists = false;
+  var user;
 
+  try {
+    user = await prisma.user.create({
+      data: {
+        login: req.body.userData.login,
+        password: req.body.userData.password
+      },
+  })} catch (e) {
+    exists = true;
+  }
+
+  if (user) {
+    res.sendStatus(200);
+  } else if (exists) {
+    res.sendStatus(400);
+  }
+});
 
 module.exports = router;
