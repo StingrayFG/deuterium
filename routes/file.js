@@ -20,6 +20,8 @@ var storage = multer.diskStorage({
 var upload = multer({ storage: storage });
 
 
+
+// handle file upload
 router.post('/upload', upload.single('file'), async function(req, res, next) {
   var fileUuid = Buffer.from(crypto.randomUUID(), 'hex').toString('base64url');
 
@@ -27,28 +29,45 @@ router.post('/upload', upload.single('file'), async function(req, res, next) {
   var file = fs.readFileSync('uploads/' + req.file.filename)
   hash.update(file);
   var hashDigest = hash.digest('hex');
-  
+
+  console.log(Date.now.toISOString());
   console.log(req.headers);
 
-  await prisma.file.create({
-    data: {
-      uuid: fileUuid,
-      name: req.file.filename,
-      hashSum: hashDigest,
-      uploadIP: req.headers['x-forwarded-for']
-    },
+  const record = await prisma.blacklist.findUnique({
+    where: {
+      hashSum: hashDigest
+    }
   })
 
-  res.json({ fileUuid: fileUuid });
-  res.send;
+  res.setHeader('Content-Type', 'application/json');
+  if (record) {
+    await fs.unlinkSync('uploads/' + file.name);
+
+    res.sendStatus(403);
+  } else {
+    await prisma.file.create({
+      data: {
+        uuid: fileUuid,
+        name: req.file.filename,
+        hashSum: hashDigest,
+        uploadIP: req.headers['x-forwarded-for']
+      },
+    })
+  
+    res.json({ fileUuid: fileUuid });
+    res.send;
+  }
 });
 
+// get the file data
 router.get('/file/:uuid', async function(req, res, next) {
   const file = await prisma.file.findUnique({
     where: {
-      uuid: req.params.uuid
+      uuid: req.params.uuid,
+      blacklisted: false
     }
   })
+  console.log(Date.now.toISOString());
 
   res.setHeader('Content-Type', 'application/json');
   if (file) {
@@ -64,12 +83,15 @@ router.get('/file/:uuid', async function(req, res, next) {
   }
 });
 
+// download the file
 router.get('/file/:uuid/download', async function(req, res, next) {
   const file = await prisma.file.findUnique({
     where: {
-      uuid: req.params.uuid
+      uuid: req.params.uuid,
+      blacklisted: false
     }
   })
+  console.log(Date.now.toISOString());
 
   if (file) {
     res.set('Content-Disposition', `attachment; filename="${path.parse(file.name).name}"`);
