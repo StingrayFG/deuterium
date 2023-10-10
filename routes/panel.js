@@ -31,10 +31,12 @@ const authenticateJWT = (req, res, next) => {
 };
 
 
+
+// handle logins
 router.post('/panel/login', async function(req, res, next) {
   console.log(req.body);
 
-  const user = await prisma.panelUser.findUnique({
+  const user = await prisma.user.findUnique({
     where: {
       login: req.body.userData.login,
       password: req.body.userData.password
@@ -43,37 +45,27 @@ router.post('/panel/login', async function(req, res, next) {
 
   res.setHeader('Content-Type', 'application/json');
   if (user) {
-    var accessToken = jwt.sign({ username: user.login }, process.env.ACCESS_TOKEN_SECRET);
+    const accessToken = jwt.sign({ username: user.login }, process.env.ACCESS_TOKEN_SECRET);
     res.send({exists: true, accessToken});
   } else {
     res.send({exists: false });
   }
 });
 
+// get the server status
 router.get('/panel/status', authenticateJWT, async function(req, res, next) {
-  var filesSize = await getFolderSize('uploads/') / (1024 * 1024);
-  var filesCount = fs.readdirSync('uploads/').length;
+  const filesSize = await getFolderSize('uploads/') / (1024 * 1024);
+  const filesCount = fs.readdirSync('uploads/').length;
 
+  res.setHeader('Content-Type', 'application/json');
   res.send({status: {version: process.env.npm_package_version, 
     uptime: process.uptime().toFixed(0), filesSize: filesSize.toFixed(1), filesCount}});
 });
 
 
-router.get('/panel/files', authenticateJWT, async function(req, res, next) {
-  const files = await prisma.file.findMany();
 
-  files.forEach(file => {
-    file.name = path.parse(file.name).name;
-  });
-  if (files) {
-    res.send({files});
-  } else {
-    res.send({files: []});
-  }
-
-});
-
-router.post('/panel/files/search', authenticateJWT, async function(req, res, next) {
+// find files by the search parameters
+router.post('/panel/files/search/parameters', authenticateJWT, async function(req, res, next) {
   var safeDateFrom = new Date(0);
   var safeDateTo = new Date();
 
@@ -127,6 +119,8 @@ router.post('/panel/files/search', authenticateJWT, async function(req, res, nex
   files.forEach(file => {
     file.name = path.parse(file.name).name;
   });
+
+  res.setHeader('Content-Type', 'application/json');
   if (files) {
     res.send({files});
   } else {
@@ -134,7 +128,8 @@ router.post('/panel/files/search', authenticateJWT, async function(req, res, nex
   }
 });
 
-router.post('/panel/files/hash', authenticateJWT, async function(req, res, next) {
+// find files by hashsum
+router.post('/panel/files/search/hash', authenticateJWT, async function(req, res, next) {
   const file = await prisma.file.findFirst({
     where: {
       hashSum: req.body.hashSum
@@ -155,7 +150,25 @@ router.post('/panel/files/hash', authenticateJWT, async function(req, res, next)
   }
 });
 
-router.post('/panel/files/:uuid/delete', authenticateJWT, async function(req, res, next) {
+// download the file even if it is blacklisted
+router.get('/panel/files/file/:uuid/download', async function(req, res, next) {
+  const file = await prisma.file.findUnique({
+    where: {
+      uuid: req.params.uuid
+    }
+  })
+
+  if (file) {
+    res.set('Content-Disposition', `attachment; filename="${path.parse(file.name).name}"`);
+    res.sendFile(file.name, { root: 'uploads/'});
+  } else {
+    res.status(404).send('Not Found');
+  }
+});
+
+
+// delete a file by uuid
+router.post('/panel/files/file/:uuid/delete', authenticateJWT, async function(req, res, next) {
   const file = await prisma.file.findUnique({
     where: {
       uuid: req.params.uuid
@@ -174,8 +187,57 @@ router.post('/panel/files/:uuid/delete', authenticateJWT, async function(req, re
   } else {
     res.sendStatus(404);
   }
-
 });
+
+// blacklist a file by uuid
+router.post('/panel/files/blacklist/:hashsum/add', authenticateJWT, async function(req, res, next) {
+  const file = await prisma.file.updateMany({
+    where: {
+      hashSum: req.params.hashsum
+    },
+    data: {
+      isBlacklisted: true
+    }
+  })
+
+  record = await prisma.blacklist.create({
+    data: {
+      hashSum: req.params.hashsum,
+      description: req.params.description
+    }
+  })
+  
+  if (record) {
+    res.sendStatus(200);
+  } else {
+    res.sendStatus(404);
+  }
+});
+
+// blacklist a file by uuid
+router.post('/panel/files/blacklist/:hashsum/remove', authenticateJWT, async function(req, res, next) {
+  const file = await prisma.file.updateMany({
+    where: {
+      hashSum: req.params.hashsum
+    },
+    data: {
+      isBlacklisted: false
+    }
+  })
+
+  record = await prisma.blacklist.delete({
+    where: {
+      hashSum: req.params.hashsum
+    }
+  })
+  
+  if (record) {
+    res.sendStatus(200);
+  } else {
+    res.sendStatus(404);
+  }
+});
+
 
 
 module.exports = router;

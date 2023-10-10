@@ -23,14 +23,14 @@ var upload = multer({ storage: storage });
 
 // handle file upload
 router.post('/upload', upload.single('file'), async function(req, res, next) {
-  var fileUuid = Buffer.from(crypto.randomUUID(), 'hex').toString('base64url');
+  const fileUuid = Buffer.from(crypto.randomUUID(), 'hex').toString('base64url');
 
   var hash = crypto.createHash('md5');
-  var file = fs.readFileSync('uploads/' + req.file.filename)
+  const file = fs.readFileSync('uploads/' + req.file.filename)
   hash.update(file);
-  var hashDigest = hash.digest('hex');
+  const hashDigest = hash.digest('hex');
 
-  console.log(Date.now.toISOString());
+  console.log(new Date().toISOString());
   console.log(req.headers);
 
   const record = await prisma.blacklist.findUnique({
@@ -67,7 +67,8 @@ router.get('/file/:uuid', async function(req, res, next) {
       blacklisted: false
     }
   })
-  console.log(Date.now.toISOString());
+
+  console.log(new Date().toISOString());
 
   res.setHeader('Content-Type', 'application/json');
   if (file) {
@@ -91,7 +92,8 @@ router.get('/file/:uuid/download', async function(req, res, next) {
       blacklisted: false
     }
   })
-  console.log(Date.now.toISOString());
+  
+  console.log(new Date().toISOString());
 
   if (file) {
     res.set('Content-Disposition', `attachment; filename="${path.parse(file.name).name}"`);
