@@ -64,7 +64,7 @@ router.get('/file/:uuid', async function(req, res, next) {
   const file = await prisma.file.findUnique({
     where: {
       uuid: req.params.uuid,
-      blacklisted: false
+      isBlacklisted: false
     }
   })
 
@@ -89,10 +89,10 @@ router.get('/file/:uuid/download', async function(req, res, next) {
   const file = await prisma.file.findUnique({
     where: {
       uuid: req.params.uuid,
-      blacklisted: false
+      isBlacklisted: false
     }
   })
-  
+
   console.log(new Date().toISOString());
 
   if (file) {
