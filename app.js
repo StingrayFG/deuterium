@@ -15,9 +15,9 @@ var app = express();
 app.use(cors({
   origin: [
     'http://172.17.0.1:3000',
-    'http://172.17.0.1:3100',
+    'http://172.17.0.1:3413',
     'http://localhost:3000',
-    'http://localhost:3100',
+    'http://localhost:3413',
   ]
 }))
 
