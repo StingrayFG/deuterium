@@ -143,7 +143,8 @@ router.post('/panel/files/search/hash', authenticateJWT, async function(req, res
       name: path.parse(file.name).name, 
       hashSum: file.hashSum,
       uploadIP: file.uploadIP,
-      uploadDate: file.uploadDate  
+      uploadDate: file.uploadDate,
+      isBlacklisted: file.isBlacklisted
     }]});
   } else {
     res.send({files: []});

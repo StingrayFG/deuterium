@@ -13,7 +13,7 @@ model file {
   hashSum       String?
   uploadIP      String?
   uploadDate    DateTime? @db.Timestamptz(3)  @default(dbgenerated("NOW()")) 
-  isBlacklisted   Boolean    @default(false)
+  isBlacklisted Boolean    @default(false)
 }
 
 model user {
