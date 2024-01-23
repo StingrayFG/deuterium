@@ -12,7 +12,7 @@ var app = express();
 
 // view engine setup
 
-app.use(cors({
+app.use(cors({ // Allow localhost and docker network in the CORS policy
   origin: [
     'http://172.17.0.1:3000',
     'http://172.17.0.1:3413',

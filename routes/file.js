@@ -9,7 +9,7 @@ const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 
 var multer = require('multer');
-var storage = multer.diskStorage({
+var storage = multer.diskStorage({ // Multer middleware to handle file upload
   destination: function (req, file, cb) {
     cb(null, 'uploads/')
   },
@@ -21,7 +21,7 @@ var upload = multer({ storage: storage });
 
 
 
-// handle file upload
+// Handle file upload
 router.post('/upload', upload.single('file'), async function(req, res, next) {
   const fileUuid = Buffer.from(crypto.randomUUID(), 'hex').toString('base64url');
 
@@ -33,18 +33,18 @@ router.post('/upload', upload.single('file'), async function(req, res, next) {
   console.log(new Date().toISOString());
   console.log(req.headers);
 
-  const record = await prisma.blacklist.findUnique({
+  const record = await prisma.blacklist.findUnique({ // Check whether the uploaded file is present in blacklist
     where: {
       hashSum: hashDigest
     }
   })
 
   res.setHeader('Content-Type', 'application/json');
-  if (record) {
-    await fs.unlinkSync('uploads/' + file.name);
+  if (record) { // If it is blacklisted, remove it from the disk
+    await fs.unlinkSync('uploads/' + file.name); 
 
     res.sendStatus(403);
-  } else {
+  } else { // If it is not blacklisted, add data about it to the database
     await prisma.file.create({
       data: {
         uuid: fileUuid,
@@ -59,7 +59,7 @@ router.post('/upload', upload.single('file'), async function(req, res, next) {
   }
 });
 
-// get the file data
+// Get the file data
 router.get('/file/:uuid', async function(req, res, next) {
   const file = await prisma.file.findUnique({
     where: {
@@ -84,9 +84,9 @@ router.get('/file/:uuid', async function(req, res, next) {
   }
 });
 
-// download the file
+// Download the file
 router.get('/file/:uuid/download', async function(req, res, next) {
-  const file = await prisma.file.findUnique({
+  const file = await prisma.file.findUnique({ // Find file's data in the database to locate it on the disk
     where: {
       uuid: req.params.uuid,
       isBlacklisted: false
